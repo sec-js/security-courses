@@ -102,7 +102,7 @@ I suspect you want to work with \emph{Secure Shell} and \emph{security}, but:
 
 \end{list2}
 
-My intention is to be your sparring partner today, list all the parts I think must be considered.
+My intention is to be your sparring partner today, list the parts I think must be considered.
 
 There are a lot of people today, but ask questions in the chat
 \hfill  Photo by Thomas Galler on Unsplash
@@ -116,14 +116,13 @@ If you want to be an expert in OpenSSH and network security I recommend doing ex
 \item Network security and most internet related security work has the following requirements:
 \begin{list2}
 \item Network experience
-\item TCP/IP principles - often in more detail than a common user
+\item TCP/IP principles - often in more detail than a common user\\
+Who initiates a connection, what is a port, can I use a different port, how to check if the firewall is open
 \item Programming is an advantage, for automating things -- can be PowerShell, Python, ...
 \item Some Linux and Unix knowledge is in my opinion a {\bf necessary skill} for infosec work\\
 -- too many new tools to ignore, and lots found at sites like Github and Open Source written for Linux
 \end{list2}
 \end{list1}
-
-
 
 
 \slide{Course Materials}
@@ -166,7 +165,9 @@ I recommend this book for people new to OpenSSH
 \end{list2}
 \item Usually aimed at unencrypted protocols
 \item Today we only talk about securing the data, not how to perform attacks
+\item We used to use Telnet, rcp, FTP and other insecure protocols a lot
 \end{list1}
+
 
 \slide{Cryptography}
 
@@ -205,31 +206,28 @@ ISBN-13:
 \link{https://nostarch.com/serious-cryptography-2nd-edition}
 
 \slide{Encryption Decryption -- Symmetric Key}
-
 \hlkimage{12cm}{images/crypto-rot13.pdf}
-
 \begin{list1}
-\item Kryptografi er læren om, hvordan man kan kryptere data
-\item Kryptografi benytter algoritmer som sammen med nøgler giver en
-  ciffertekst
-\item  - der kun kan læses ved hjælp af den tilhørende nøgle
+\item Cryptography is the study of how data can be encrypted
+\item Cryptography uses algorithms that, together with keys, produce a
+  ciphertext
+\item  - which can only be read using the corresponding key
 \end{list1}
-
 
 \slide{Cryptographic principles}
 
-\begin{list1}
-\item Algoritmerne er kendte
-\item Nøglerne er hemmelige
-\item Nøgler har en vis levetid - de skal skiftes ofte
-\item Et successfuldt angreb på en krypto-algoritme er enhver genvej
-  som kræver mindre arbejde end en gennemgang af alle nøglerne
-\item Nye algoritmer, programmer, protokoller m.v. skal gennemgås nøje!
-\item Se evt. Snake Oil Warning Signs:
+\begin{list2}
+\item The algorithms are public, the keys are secret \url{https://en.wikipedia.org/wiki/Kerckhoffs%27s_principle}
+\item The algorithms are public
+\item Keys have a limited lifespan -- they must be rotated frequently
+\item A successful attack on a cryptographic algorithm is any shortcut
+  that requires less work than exhausting all possible keys
+\item New algorithms, programs, protocols, etc. must be reviewed carefully!
+\item See also Snake Oil Warning Signs:
 Encryption Software to Avoid\\
 \url{https://www.schneier.com/crypto-gram/archives/1999/0215.html#snakeoil}
 \item Wikipedia Snake oil description \link{https://en.wikipedia.org/wiki/Snake_oil_(cryptography)}
-\end{list1}
+\end{list2}
 
 
 \slide{AES Advanced Encryption Standard}
@@ -277,28 +275,23 @@ RSA involves a public key and a private key. The public key can be known by ever
 
 Source: \link{https://en.wikipedia.org/wiki/RSA_(cryptosystem)}
 
-
-\slide{Public key kryptografi - 1}
-
+\slide{Public Key Cryptography - 1}
 \hlkimage{12cm}{images/crypto-public-key.pdf}
-
 \begin{list1}
-\item privat-nøgle kryptografi (eksempelvis AES) benyttes den samme
-  nøgle til kryptering og dekryptering
-\item offentlig-nøgle kryptografi (eksempelvis RSA) benytter to
-  separate nøgler til kryptering og dekryptering
+\item Private-key cryptography (e.g. AES) uses the same key
+  for both encryption and decryption
+\item Public-key cryptography (e.g. RSA) uses two
+  separate keys for encryption and decryption
 \end{list1}
 
-\slide{Public key kryptografi - 2}
-
+\slide{Public Key Cryptography - 2}
 \hlkimage{12cm}{images/crypto-public-key-2.pdf}
-
 \begin{list1}
-\item offentlig-nøgle kryptografi (eksempelvis RSA) bruger den private
-  nøgle til at dekryptere
-\item man kan ligeledes bruge offentlig-nøgle kryptografi til at
-  signere dokumenter\\ - som så verificeres med den offentlige nøgle
-\item NB: Kryptering alene sikrer ikke anonymitet
+\item Public-key cryptography (e.g. RSA) uses the private
+  key to decrypt
+\item Public-key cryptography can also be used to
+  sign documents\\ - which are then verified using the public key
+\item NB: Encryption alone does not guarantee anonymity
 \end{list1}
 
 \slide{Elliptic Curve }
@@ -367,19 +360,17 @@ Note the difference between running as root and normal user. Usually books and i
 
 %\hlkimage{8cm}{debian-xfce.png}
 
-\begin{alltt}\footnotesize
+\begin{alltt}\scriptsize
 hlk@zenbook:~$ ssh hlk@10.0.42.10
 The authenticity of host '10.0.42.10 (10.0.42.10)' can't be established.
 ED25519 key fingerprint is SHA256:ah56JydlY5h6b1qD8PA2Kkq20UkfCt07aLWFFugb42A.
 This key is not known by any other names.
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 Warning: Permanently added '10.0.42.10' (ED25519) to the list of known hosts.
-
 ==========================================================
 Access to this device is limited to authorized users only.
  WARNING: All unauthorized access is prohibited.
 ==========================================================
-
 (hlk@10.0.42.10) Password:
 Last login: Sat Apr 25 18:05:37 2026 from 10.0.42.109
 --- JUNOS xx
@@ -390,7 +381,8 @@ hlk@ex2300-c>
 
 \begin{list2}
 \item Secure Shell is using Trust on First Use (TOFU) \url{https://en.wikipedia.org/wiki/Trust_on_first_use}
-\item Note: this is using passwords!
+\item Fingerprints of severs are saved in \verb+.ssh/known_hosts+
+\item Note: this is most important when using passwords!
 \end{list2}
 
 
@@ -398,7 +390,7 @@ hlk@ex2300-c>
 
 %\hlkimage{8cm}{debian-xfce.png}
 
-\begin{alltt}\footnotesize
+\begin{alltt}\scriptsize
 hlk@zenbook:~$ ssh 10.0.42.21
 Linux stat01 6.12.57+deb13-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.57-1 (2025-11-05) x86_64
 
@@ -462,17 +454,6 @@ endar for that month is a bit unusual.
 
 \slide{Keys!}
 
-
-\begin{list2}
-\item[1] Generate a key -- \verb+ssh-keygen+
-\item[2] Install key on server -- if password login is enabled, use \verb+ssh-copy-id+
-\item[3] Login with key -- just use \verb+ssh+
-\end{list2}
-
-
-\slide{Generate a key -- ssh-keygen}
-
-
 \begin{alltt}\footnotesize
 root@zenbook:~# ssh-keygen -t ed25519
 Generating public/private ed25519 key pair.
@@ -483,19 +464,16 @@ Your identification has been saved in /root/.ssh/id_ed25519
 Your public key has been saved in /root/.ssh/id_ed25519.pub
 The key fingerprint is:
 SHA256:wUrACwZ1OZ5dIal8D0/RcQ5eUvPurUrvsL3wWvRQvpw root@zenbook
-The key's randomart image is:
-+--[ED25519 256]--+
-|.o..o....o+o=    |
-|  o.+..oo..* o   |
-| . + *..o.. . . .|
-|    *.+...   . o |
-|     ..=S     + .|
-|        o    o.+o|
-|            + oEo|
-|           . O . |
-|            ++B. |
-+----[SHA256]-----+
 \end{alltt}
+
+
+\begin{list2}
+\item[1] Generate a key -- \verb+ssh-keygen+
+\item[2] Install key on server -- if password login is enabled, use \verb+ssh-copy-id+
+\item[3] Login with key -- just use \verb+ssh+
+\end{list2}
+
+
 
 \slide{Install key on server -- ssh-copy-id}
 
@@ -546,7 +524,8 @@ Usually you would recommend SSH-Agent, but lets wait with that.\\
 \slide{Common Use cases}
 
 \begin{list2}
-%  \item {\bf Remote Shell Access} --- Securely log in to a remote machine and execute commands via an interactive terminal session.
+  \item {\bf Remote Shell Access} --- Securely log in to a remote machine and execute commands via an interactive terminal session.
+  \item {\bf SSH Agent Forwarding} --- Forward your local SSH keys through a chain of hosts, avoiding the need to store private keys on intermediate servers.
   \item {\bf Secure File Transfer} --- Transfer files between hosts using \verb+scp+ (secure copy) or \verb+sftp+ (SSH File Transfer Protocol).
   \item {\bf Port Forwarding / Tunneling} --- Forward local or remote ports over an encrypted SSH connection to securely access services behind firewalls.
 %  \item {\bf Public Key Authentication} --- Authenticate without passwords using key pairs (\verb+ssh-keygen}), enabling automated and more secure logins.
@@ -556,7 +535,6 @@ Usually you would recommend SSH-Agent, but lets wait with that.\\
 %  \item {\bf Remote Command Execution} --- Run a single command on a remote host non-interactively, e.g.\ \verb+ssh user@host "df -h"}.
 %  \item {\bf Git over SSH} --- Authenticate and communicate securely with Git hosting services (GitHub, GitLab, etc.) using SSH keys.
 %  \item {\bf Automated Deployment \& CI/CD} --- Use SSH in scripts and pipelines to deploy code, restart services, or run remote tasks on production servers.
-  \item {\bf SSH Agent Forwarding} --- Forward your local SSH keys through a chain of hosts, avoiding the need to store private keys on intermediate servers.
 %  \item {\bf Mounting Remote Filesystems} --- Use \verb+sshfs} to mount a remote directory locally over SSH as if it were a local filesystem.
 \end{list2}
 
@@ -601,11 +579,44 @@ Now connect your local browser to \verb+https://localhost:1443+
 \item {\bf 1443:192.168.1.1:443} --- Local port $\rightarrow$ remote host $\rightarrow$ remote port
 \item Using port 1443 locally to avoid permission issues -- privileged ports on Unix
 %      \item {\bf user@remote-server.com} --- The SSH gateway host
+\item Remote Port Forwarding works the opposite, back into the client but otherwise very similar
 \end{list2}
+
+
+
+\slide{SSH SOCKS Proxy}
+
+Start a dynamic SOCKS5 proxy on local port 1080:
+
+\verb+ssh -D 1080 jumphost+
+
+Then configure your browser or application to use \verb+localhost:1080+ as a SOCKS5 proxy in your browser --
+all traffic is tunnelled through the remote server
+
+\begin{list2}
+\item {\bf -D 1080} --- open a local SOCKS5 proxy on port 1080
+\item {\bf jumphost} --- the SSH server acting as the exit node
+\item The end result is as if you were onsite with a laptop and browser
+\end{list2}
+
+\slide{OpenSSH X11 Forwarding}
+
+X11 forwarding allows running graphical applications on a remote host
+
+\verb+ssh -Y user@host+
+
+\begin{list1}
+\item Use \verb+ssh -Y+ for trusted forwarding -- less secure, fewer restrictions
+\item On OpenBSD, \verb+X11Forwarding+ is disabled by default -- enable explicitly
+\item Requires \verb+xauth+ installed on the server: \verb+pkg_add xauth+
+\item See also: \verb+sshd_config(5)+, \verb+ssh_config(5)+\\
+\url{https://man.openbsd.org/sshd_config}
+\end{list1}
 
 
 \slide{Centralized management SSH, Jump hosts}
 
+\hlkimage{13cm}{jump-server.pdf}
 \begin{quote}
 A jump server, jump host or jumpbox is a computer on a network used to access and manage devices in a separate security zone. The most common example is managing a host in a DMZ from trusted networks or computers.
 \end{quote}
@@ -637,21 +648,19 @@ Host *
 I configure fw using both hostname and IP,\\
 then I can use name, and any program using IP get this config too
 
+\slide{Jump Server -- Secure SSH Access, sidenote }
 
-\slide{SSH SOCKS Proxy}
-
-Start a dynamic SOCKS5 proxy on local port 1080:
-
-\verb+ssh -D 1080 jumphost+
-
-Then configure your browser or application to use \verb+localhost:1080+ as a SOCKS5 proxy in your browser --
-all traffic is tunnelled through the remote server
+\hlkimage{4cm}{skull-and-bones-aj.png}
 
 \begin{list2}
-\item {\bf -D 1080} --- open a local SOCKS5 proxy on port 1080
-\item {\bf jumphost} --- the SSH server acting as the exit node
-\item The end result is as if you were onsite with a laptop and browser
+\item A jump server is the single authorised entry point for SSH into and out of a secure network
+\item All traffic is funnelled through one host -- making it auditable and monitorable
+\item The jump server enforces: authentication, logging, and access control in one place
+\item Without a jump server, users may establish direct SSH tunnels that bypass firewall rules and security policies
+\item SSH agent forwarding and port forwarding can silently circumvent network segmentation
+\item Use \verb+ProxyJump+ to connect transparently via the jump server:
 \end{list2}
+
 
 
 
@@ -663,7 +672,7 @@ all traffic is tunnelled through the remote server
 % Source:
 
 \begin{list2}
-\item {\bf Secure File Transfer} --- Transfer files between hosts using \verb+scp} (secure copy) or \verb+sftp+ (SSH File Transfer Protocol).
+\item {\bf Secure File Transfer} --- Transfer files between hosts using \verb+scp+ (secure copy) or \verb+sftp+ (SSH File Transfer Protocol).
 \item {\bf Git over SSH} --- Authenticate and communicate securely with Git hosting services (GitHub, GitLab, Codeberg etc.) using SSH keys.
 \item {\bf Ansible} configuration management
 \item {\bf Rsync} file distribution -- can use SSH directly
@@ -970,15 +979,6 @@ Status: active
 \end{list2}
 
 
-\slide{Things not to use in OpenSSH}
-
-Note: This is my opinion!
-
-\begin{list2}
-\item Don't use the built-in VPN for sending packets over the SSH tunnel. TCP-in-TCP and all that -- use Wireguard instead
-\end{list2}
-
-
 \slide{OpenSSH VPN -- tunnel interface over SSH}
 
 \begin{alltt}\scriptsize
@@ -996,7 +996,7 @@ Note: This is my opinion!
 
 \begin{list2}
 \item Was added during the years -- and still works
-\item Not my preferred VPN
+\item Do not use the built-in VPN for sending packets over the SSH tunnel. TCP-in-TCP and all that -- use Wireguard instead
 \end{list2}
 
 
@@ -1098,7 +1098,7 @@ Do:
 \item Optional: move the service to a non-standard port -- less logs and brute force
 \end{list2}
 
-\slide{How to check -- Nmap SSH Servers}
+\slide{Audit OpenSSH -- Nmap SSH Servers}
 
 
 \begin{list2}
@@ -1106,6 +1106,7 @@ Do:
 \item Use the scripts included with Nmap to enumerate algorithms and authentication methods
 \item You can also combine them into one scan:\\
 \verb+nmap -A -p 22,2200,2222 --script "ssh-auth-methods,ssh2-enum-algos" 192.0.2.0/24+
+\item We expect updated software and on the Internet -- NO PASSWORD BASED LOGINS
 \end{list2}
 
 \begin{alltt}
@@ -1234,6 +1235,42 @@ MAC Address: 80:EE:73:XX:YY:ZZ (Shuttle)
 \item This is an OpenBSD firewall
 \end{list2}
 
+\slide{SSHD configuration}
+
+\verb+/etc/ssh/sshd_config+:
+\begin{alltt}
+#Port 22
+#AddressFamily any
+#ListenAddress 0.0.0.0
+#ListenAddress ::
+PermitRootLogin no
+
+# To disable tunneled clear text passwords, change to "no" here!
+PasswordAuthentication no
+\end{alltt}
+
+Much more can be done in configuration of client in \verb+ssh_config+ and the above.
+
+\begin{list2}
+\item Special use-cases can restrict commands after login, and use special shells like \verb+git-shell+
+\end{list2}
+
+\slide{git-shell on OpenBSD}
+\begin{list2}
+\item \verb+git-shell+ restricts SSH users to Git operations only
+\item Install Git on OpenBSD: \verb+pkg_add git+
+\item Set \verb+git-shell+ as the login shell for the git user:
+\begin{verbatim}
+useradd -s /usr/local/bin/git-shell git
+\end{verbatim}
+\item Authorised keys go in \verb+~git/.ssh/authorized_keys+
+\item Users can clone, push and pull -- but get no interactive shell
+\item On OpenBSD, combine with \verb+doas+ rules and file permissions
+  for additional containment
+\item See also: \verb+git-daemon(1)+, \verb+sshd_config(5)+\\
+\url{https://git-scm.com/docs/git-shell}
+\end{list2}
+
 
 \slide{Software Security}
 
@@ -1246,7 +1283,23 @@ Yes, I think we can:
 \item OpenSSH does a lot to reduce the attack surface, pre-auth vs code running after authentication
 \end{list2}
 
-There have been software issues with OpenSSH -- and other SSH implementations!
+There have been software issues with OpenSSH -- and other SSH implementations! so still use defense-in-depth -- like git-shell and restrict environments as much as possible. Less permissions, less damage.
+
+
+\slide{Connecting to old devices and servers}
+
+Sometimes you will find an old server, and if you are lucky you can still connect --using insecure settings \emph{temporarily}:
+\begin{alltt}\scriptsize
+Host 10.0.42.40
+    KexAlgorithms diffie-hellman-group1-sha1,curve25519-sha256@libssh.org,ecdh-sha2-nistp256,
+    ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group-exchange-sha256,
+    diffie-hellman-group14-sha1
+    PubkeyAcceptedAlgorithms +ssh-rsa
+    HostkeyAlgorithms +ssh-rsa
+    Ciphers +aes128-cbc
+\end{alltt}
+
+Only recommended until you have the data you need, and can shutdown this!
 
 \slide{Reading, Putty CVE-2024-31497}
 
