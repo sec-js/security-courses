@@ -754,7 +754,7 @@ ansible-playbook -v 1-dependencies.yml 2-suricatazeek.yml 3-elasticstack.yml
 \slide{Demo: output from running a git clone}
 
 \begin{alltt}\footnotesize
-user@Projects:tt$ {\bf git clone https://github.com/kramse/kramse-labs.git}
+user@Projects:tt$ {\bf git clone https://codeberg.org/kramse/kramse-labs.git}
 Cloning into 'kramse-labs'...
 remote: Enumerating objects: 283, done.
 remote: Total 283 (delta 0), reused 0 (delta 0), pack-reused 283
@@ -785,7 +785,7 @@ origin	git@codeberg.org:kramse/security-courses.git (fetch)
   \item Basic syntax with SSH \\
     \verb+rsync -avz -e ssh user@host:/src/ /dst/+
     \item Custom SSH options \\
-      \verb+rsync -e "ssh -p 2222 -i \textasciitilde/.ssh/id\_ed25519" ...+
+      \verb+rsync -e "ssh -p 2222 -i ~/.ssh/id\_ed25519" ...+
 
   \item {\bf Key options}
     \begin{list2}
