@@ -3,6 +3,29 @@
 
 \selectlanguage{english}
 
+
+\usepackage{tabularx}
+\usepackage{tikz}
+\usetikzlibrary{mindmap,trees}
+\usetikzlibrary{shapes.geometric, arrows,automata}
+\usetikzlibrary{positioning}
+
+\usepackage{jigsaw}
+
+
+
+\tikzset{
+    state/.style={
+           rectangle,
+           rounded corners,
+           draw=black, very thick,
+           minimum height=2em,
+           inner sep=2pt,
+           text centered,
+           },
+}
+
+
 %\externaldocument{unix-audit-security-oevelser}
 \externaldocument{\jobname-exercises}
 
@@ -96,7 +119,7 @@ I want to inspire you to change your minds and get started
 \item You are unsure of how to do it
 \item My intention is to be your sparring partner today, list the parts I think must be considered.
 
-\item The slideshow can hopyfully serve as an inspiration, but maybe also a Warning! -- sometimes let others do the technical stuff \smiley
+\item The slideshow can hopefully serve as an inspiration, but maybe also a Warning! -- sometimes let others do the technical stuff \smiley
 \end{list2}
 
 \slide{Why are we here today then?!}
@@ -300,10 +323,10 @@ assigned. IPv6 PI address space is still available.
 
 \begin{list2}
   \item {\bf IPv4 PI:} No longer available -- RIPE NCC has exhausted its IPv4 pool, can be bought around 20-40USD/IP in chunks of at least 256
-  \item {\bf IPv4 PA:}Limited availability -- RIPE NCC has exhausted its IPv4 pool, providers are charging per IP\\
+  \item {\bf IPv4 PA:} Limited availability -- RIPE NCC has exhausted its IPv4 pool, providers are charging per IP\\
   Usually in Denmark you would get a single public IP for your home connection and enterprise customers can pay for more
   \item {\bf IPv6 PI:} {\bf Still available for assignment through a sponsoring LIR}
-  \item {\bf IPv6 PA:} Available through LIR -- but cannot me migrated to new provider!
+  \item {\bf IPv6 PA:} Available through LIR -- but cannot be migrated to new provider!
 \end{list2}
 
 So yes, I consider IPv6 a pre-requisite for digital sovereignty!
@@ -609,7 +632,7 @@ Using VLANs to segment networks we can extend it to the rest of the network, and
 \item Guest network for cabled and Wi-Fi clients
 \item Client networks can be isolated per department, floor or building
 \item Server networks for multiple purposes – development, staging, testing, production, manufacturing, …
-\item Internet servers in a demilitarized zone (DMZ)4 which would make it less likely that compromised internet
+\item Internet servers in a demilitarized zone (DMZ) which would make it less likely that compromised internet
 server would affect the rest of the network
 \item Dedicated printer network
 \item Management network for virtualisation, one for network management, one for storage
@@ -620,7 +643,7 @@ server would affect the rest of the network
 \slide{Proxy servers and Web Application Firewalls (WAF)}
 
 \begin{list2}
-\item Filtrering at higher layers is also possible
+\item Filtering at higher layers is also possible
 \item Web proxies for clients can help security a lot -- a centralized filter for everyone
 
 \item Reverse proxies for web applications are called
@@ -929,6 +952,372 @@ and are on call — a deliberate choice
 PostgreSQL, LibreNMS, NIPAP, Zim-Wiki, and more
 \end{list2}
 
+
+\slide{Start Here: Own Your Domain and Email}
+
+Owning your domain is the single most important first step toward digital sovereignty.
+
+\begin{list2}
+\item {\bf Register your own domain} — pick a registrar you trust, pay the yearly fee
+\item {\bf DNS is the foundation} — controlling your own zone means you control
+where email, web, and all other services point, and you can move them at any time
+\item {\bf Use your own domain for email} — \verb+you@yourdomain.com+ instead of
+\verb+you@gmail.com+
+\item {\bf MX records} point your domain's email to whichever mail server you choose —
+self-hosted Postfix/Dovecot?
+\item {\bf SPF, DKIM, and DMARC} are mandatory — without them your outgoing mail
+lands in spam; DNS records
+\item {\bf Practical path:} register domain $\rightarrow$ set up DNS $\rightarrow$
+point MX at a trusted mail host $\rightarrow$ migrate email $\rightarrow$
+self-host when ready
+\item To get started perhaps register some new domain to try it out!
+\end{list2}
+
+
+
+\slide{Simple Mail Transfer Protocol (SMTP)}
+
+\begin{quote}
+SMTP is the standard protocol for sending email between servers.
+Defined in RFC 821 (1982) and updated by RFC 5321 (2008) as Extended SMTP (ESMTP).
+All mail servers use it — sending, relaying, and receiving between domains.
+\end{quote}
+
+Source: \link{https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol}
+
+\begin{list2}
+\item {\bf Port 25} — server-to-server SMTP (often blocked by ISPs on home connections)
+\item {\bf Port 587} — submission port for mail clients to send via their mail server
+\item {\bf Port 465} — SMTPS, submission over TLS
+\item {\bf Postfix} is the most widely deployed open source SMTP server \link{https://www.postfix.org}
+\item {\bf Dovecot} handles IMAP/POP3 — the retrieval side; pairs naturally with Postfix \link{https://www.dovecot.org}
+\item {\bf SPF, DKIM, DMARC} are DNS-based authentication layers built on top of SMTP —
+without them, your mail will be rejected or marked as spam
+\item Self-hosting email is rewarding but demanding — start with a VPS with a clean IP reputation
+\end{list2}
+\slide{Internet Message Access Protocol (IMAP)}
+
+\begin{quote}
+In computing, the Internet Message Access Protocol (IMAP) is an Internet standard protocol used by email clients to retrieve email messages from a mail server over a TCP/IP connection.[1] IMAP is defined by RFC 3501.
+
+IMAP was designed with the goal of permitting complete management of an email box by multiple email clients, therefore clients generally leave messages on the server until the user explicitly deletes them. An IMAP server typically listens on port number 143. IMAP over SSL (IMAPS) is assigned the port number 993.
+
+Virtually all modern e-mail clients and servers support IMAP, which along with the earlier POP3 (Post Office Protocol) are the two most prevalent standard protocols for email retrieval.[2] Many webmail service providers such as Gmail, Outlook.com and Yahoo! Mail also provide support for both IMAP and POP3.
+\end{quote}
+
+\url{https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol}
+
+Recommendation: Only use the TLS enabled version on port 993/tcp
+
+
+\slide{Example of SMTP and IMAP}
+
+\begin{center}
+\begin{tikzpicture}[->,>=stealth',scale=0.8, transform shape]
+  \newlength{\boxwidth}
+  \setlength{\boxwidth}{6cm}
+  \newlength{\boxheight}
+  \setlength{\boxheight}{5cm}
+  \newlength{\boxspace}
+  \setlength{\boxspace}{12cm}
+
+  % http://texample.net/tikz/examples/epc-flow-charts/
+
+  % https://www.overleaf.com/learn/latex/LaTeX_Graphics_using_TikZ:_A_Tutorial_for_Beginners_(Part_3)%E2%80%94Creating_Flowcharts
+
+   % Use previously defined 'state' as layout (see above)
+   % use tabular for content to get columns/rows
+   % parbox to limit width of the listing
+   \node[state,text width=\boxwidth,minimum height=\boxheight] (SENDER)
+   {\begin{tabular}{l}
+   {\bf Sending Server}\\
+      Could be Postfix
+   \end{tabular}};
+
+   %
+   \node[state,         % layout (defined above)
+    text width=\boxwidth,       % max text width
+    minimum height=\boxheight,
+    %yshift=2cm,                % move 2cm in y
+    right of=SENDER,    % Position is to the right of QUERY
+    node distance=\boxspace,    % distance to First node
+    anchor=center] (RECEIVER)   % posistion relative to the center of the 'box'
+   {%
+   \begin{tabular}{l}
+   {\bf Receiving Server}\\
+Could be Dovecot
+   \end{tabular}};
+
+   \node[state,
+    below of=SENDER,
+    yshift=-8cm,
+    anchor=center,
+    minimum height=\boxheight,
+    text width=\boxwidth] (THUNDERBIRD)
+   {%
+   \begin{tabular}{l}
+   {\bf Sending Client}\\
+    Mail program\\
+    Thunderbird
+   \end{tabular}
+   };
+
+   \node[state,
+    below of=RECEIVER,
+    yshift=-8cm,
+    anchor=center,
+    minimum height=\boxheight,
+    text width=\boxwidth] (CLAWS)
+   {%
+   \begin{tabular}{l}
+   {\bf Receiving Client}\\
+    Mail program\\
+    Claws
+   \end{tabular}
+   };
+   % draw the paths and and print some Text below/above the graph
+   \path
+   (SENDER)     edge node[anchor=north,above]{SMTP 25/tcp} (RECEIVER)
+   (THUNDERBIRD)        edge node[anchor=west,left]{SMTP Submission 587/tcp} (SENDER)
+   (RECEIVER) edge node[anchor=east,right]{IMAPS 993/tcp }   (CLAWS);
+
+\end{tikzpicture}
+\end{center}
+
+
+\slide{Email Software}
+
+My recommendations are:
+\begin{list2}
+\item Sending mail with SMTP using Postfix
+\item Receiving mail with IMAP using Dovecot
+\end{list2}
+
+I would NOT use these:
+\begin{list2}
+\item Exim - multiple Remote Code Execution in 2019, fatal security vulns \\
+\url{https://www.exim.org/static/doc/security/}
+\item OpenSMTPD has had some really strange vulnerabilities recently\\
+\url{https://www.opensmtpd.org/security.html}
+\item Dont use Sendmail - old and horrible
+\end{list2}
+
+
+Many more exist: \url{https://en.wikipedia.org/wiki/Comparison_of_mail_servers}
+
+\slide{Postfix}
+
+\hlkimage{3cm}{postfix-mouse.png}
+
+\begin{quote}
+  Postfix is a free and open-source mail transfer agent (MTA) that routes and delivers electronic mail.
+
+It is released under the IBM Public License 1.0 which is a free software license. Alternatively, starting with version 3.2.5, it is available under the Eclipse Public License 2.0 at the user's option.[2]
+
+Originally written in 1997 by Wietse Venema at the IBM Thomas J. Watson Research Center in New York, and first released in December 1998[3], Postfix continues as of 2020 to be actively developed by its creator and other contributors.
+\end{quote}
+Source: \url{https://en.wikipedia.org/wiki/Postfix_(software)}
+
+Home page: \url{http://www.postfix.org/}
+
+
+\slide{Dovecot}
+
+\begin{quote}
+Dovecot is an open-source IMAP and POP3 server for Unix-like operating systems, written primarily with security in mind.[3] Timo Sirainen originated Dovecot and first released it in July 2002. Dovecot developers primarily aim to produce a lightweight, fast and easy-to-set-up open-source email server.
+
+The primary purpose of Dovecot is to act as mail storage server. Mail is delivered to the server using some mail delivery agent (MDA) and stored for later access with an email client (mail user agent, or MUA).
+\end{quote}
+Source: \url{https://en.wikipedia.org/wiki/Dovecot_(software)}
+
+\begin{quote}
+Dovecot is an open source IMAP and POP3 email server for Linux/UNIX-like systems, written with security primarily in mind. Dovecot is an excellent choice for both small and large installations. It's fast, simple to set up, requires no special administration and it uses very little memory.
+\end{quote}
+Home page: \url{https://www.dovecot.org/}
+
+
+
+
+\slide{Securing Your Email Client}
+
+\hlkimage{10cm}{thunderbird-enigmail-logo.png}
+
+\begin{list2}
+\item Security settings
+\item Use TLS for SMTP
+\item Use TLS for IMAPS
+\item Disable loading of remote content, images, HTML parts, content, bugs, tracking
+\item Disable sending version strings
+\item Add plugins you need, but only those!
+\end{list2}
+
+Thunderbird mentioned as being one of the most popular email clients
+
+
+\slide{CVE Details -- All software has errors! }
+\hlkimage{19cm}{thunderbird-cves.png}
+
+Source: {\footnotesize\url{https://www.cvedetails.com/product/3678/Mozilla-Thunderbird.html?vendor_id=452}}
+
+
+\slide{Thunderbird Settings: }
+
+\begin{quote}
+Email messages can contain remote content such as images or stylesheets. To protect your privacy, Thunderbird does not load remote content automatically, but instead shows a notification bar to indicate that it blocked remote content.
+\end{quote}
+
+\begin{list2}
+\item Privacy and security settings\\{\footnotesize \url{https://support.mozilla.org/da/products/thunderbird/privacy-and-security-settings}\\
+\url{https://support.mozilla.org/en-US/products/thunderbird/privacy-and-security-settings}}
+\item Previously you could override the User-Agent setting, setting it empty:\\
+Does not work anymore
+\url{https://bugzilla.mozilla.org/show_bug.cgi?id=1114475}
+\item GPG and Enigmail for OpenPGP suppoprt - encrypted email\\
+\url{https://support.mozilla.org/en-US/kb/digitally-signing-and-encrypting-messages}
+\end{list2}
+
+\slide{Claws Security Settings}
+
+In my mail application there are other settings you can play with:
+
+\begin{list2}
+\item[\faCheck] Render HTML messages as text
+\item[\faCheck] Use secure file deletion if possible
+\item[\faCheck] Never send Return Receipts\\
+When you receive a message that requests a Return Receipt a notification area is shown just above the message view. You can either use the 'Send receipt' button, or ignore the request - no receipts are sent automatically.
+\item[\faSquareO] Automatically display attached images
+\item[\faSquareO] Display images inline
+\item[\faSquareO] Add user agent header -- don't
+\end{list2}
+
+BTW my mail client is not perfect either:\\{\footnotesize
+\url{https://www.cvedetails.com/vulnerability-list/vendor_id-12415/Claws-mail.html}}
+
+
+\slide{Advanced: Run your mail client in a VM}
+
+\hlkimage{10cm}{claws-email.png}
+
+I run my email client in a VM, which can only connect to my mail server and my printer
+
+\begin{alltt}\footnotesize
+[hlk@dom0 ~]$ qvm-firewall Mailreader
+NO  ACTION  HOST             PROTOCOL  PORT(S)  SPECIAL TARGET  ICMP TYPE  EXPIRE  COMMENT
+0   accept  192.0.222/32  tcp       993      -               -          -       -
+1   accept  192.0.222/32  tcp       587      -               -          -       -
+2   accept  10.0.42.13/32    tcp       515      -               -          -       -
+3   drop    -                -         -        -               -          -       -
+[hlk@dom0 ~]$
+\end{alltt}
+
+
+
+
+\slide{Unbound and NSD}
+
+\begin{quote}
+Unbound is a validating, recursive, caching DNS resolver. It is designed to be fast and lean and incorporates modern features based on open standards.
+
+To help increase online privacy, Unbound supports DNS-over-TLS which allows clients to encrypt their communication. In addition, it supports various modern standards that limit the amount of data exchanged with authoritative servers.
+\end{quote}
+
+\link{https://www.nlnetlabs.nl/projects/unbound/about/}
+
+My preferred local DNS server, and NSD is my preferred authoritative DNS server
+
+Also check out uncensored DNS and his DNS over TLS setup!\\
+Even has pinning information available:\\ {\small\link{https://blog.censurfridns.dk/blog/32-dns-over-tls-pinning-information-for-unicastcensurfridnsdk/}}
+
+
+\slide{Email security -- Goals}
+
+\begin{list2}
+\item SPF Sender Policy Framework\\ {\footnotesize\link{https://en.wikipedia.org/wiki/Sender_Policy_Framework}}
+\item DKIM DomainKeys Identified Mail\\
+{\footnotesize\link{https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail}}
+\item DMARC Domain-based Message Authentication, Reporting and Conformance\\
+{\footnotesize\link{https://en.wikipedia.org/wiki/DMARC}}
+\item Use them all
+\end{list2}
+
+A huge part of email security is ensuring our domains are not abused in spoofing attacks, and spam
+
+
+
+\slide{Sender Policy Framework (SPF)}
+
+\begin{alltt}
+ $ host -t TXT zencurity.com
+ zencurity.com descriptive text "v=spf1 a mx mx:kramse.dk -all"
+\end{alltt}
+
+\begin{quote}\footnotesize
+Sender Policy Framework (SPF) is an email authentication method designed to detect forging sender addresses during the delivery of the email.[1] SPF alone, though, is limited only to detect a forged sender claimed in the envelope of the email which is used when the mail gets bounced.[1] {\bf Only in combination with DMARC can it be used to detect the forging of the visible sender in emails} (email spoofing[2]), a technique often used in phishing and email spam.
+
+SPF allows the receiving mail server to check during mail delivery that a mail claiming to come from a specific domain is submitted by an IP address authorized by that domain's administrators.[3] The list of authorized sending hosts and IP addresses for a domain is published in the DNS records for that domain.
+\end{quote}
+
+Source:\\{\footnotesize
+\link{https://en.wikipedia.org/wiki/Sender_Policy_Framework}}
+
+
+\slide{DomainKeys Identified Mail (DKIM)}
+
+\begin{quote}
+DomainKeys Identified Mail (DKIM) allows the receiver to check that an email claimed to have come from a specific domain was indeed authorized by the owner of that domain.[1] It achieves this by affixing a digital signature, linked to a domain name, to each outgoing email message. The recipient system can verify this by looking up the sender's public key published in the DNS. A valid signature also guarantees that some parts of the email (possibly including attachments) have not been modified since the signature was affixed.[2] Usually, DKIM signatures are not visible to end-users, and are affixed or verified by the infrastructure rather than the message's authors and recipients.
+\end{quote}
+
+Source: \\{\footnotesize
+\link{https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail}}
+
+\slide{Domain-based Message Authentication (DMARC)}
+
+\begin{quote}\footnotesize
+DMARC (Domain-based Message Authentication, Reporting and Conformance) is an email authentication protocol. It is designed to give email domain owners the ability to protect their domain from unauthorized use, commonly known as email spoofing. The purpose and primary outcome of implementing DMARC is to protect a domain from being used in business email compromise attacks, phishing emails, email scams and other cyber threat activities.
+
+Once the DMARC DNS entry is published, any receiving email server can authenticate the incoming email based on the instructions published by the domain owner within the DNS entry. If the email passes the authentication it will be delivered and can be trusted. If the email fails the check, depending on the instructions held within the DMARC record the email could be delivered, quarantined or rejected.
+
+DMARC extends two existing mechanisms, Sender Policy Framework (SPF) and DomainKeys Identified Mail (DKIM).
+\end{quote}
+DMARC Domain-based Message Authentication, Reporting and Conformance\\
+Source: \\{\footnotesize
+\link{https://en.wikipedia.org/wiki/DMARC}}
+
+
+\slide{DMARC for non-sending Domains}
+If you have domains that \emph{never send email} then add the following SPF and DMARC to avoid misuse.
+
+from my own DSN template for \emph{parked domains}:
+\begin{alltt}
+gdns.template   v=spf1 -all     43200
+_dmarc.gdns.template    v=DMARC1; p=reject;     43200
+\end{alltt}
+
+
+\slide{You Don't Have to Do It Alone}
+
+%\hlkimage{}{}
+
+\begin{quote}
+Self-hosting does not mean doing everything yourself from scratch.
+There is a thriving ecosystem of communities, cooperatives, and associations
+that run shared infrastructure for their members — combining the benefits
+of self-hosting with shared operational responsibility.
+\end{quote}
+
+\begin{list2}
+\item Associations and cooperatives can pool resources — shared hardware,
+shared skills, shared on-call burden
+\item Members retain control and trust in the people running the service,
+rather than a faceless corporation
+\item A great middle ground between full DIY and surrendering to Big Tech
+\item The following examples show real organisations doing exactly this —
+each with different scope, values, and technical approaches
+\item They may also inspire you to start something similar in your own community,
+workplace, or interest group
+\end{list2}
+
+
 \slide{Some Examples: Fripost - The Free Email Association}
 
 \begin{quote}{\bf \large
@@ -973,7 +1362,7 @@ Ud fra de kerneprincipper vil vi med tiden udbyde onlinetjenester til medlemmern
 
 Source:  \link{https://data.coop}
 
-\slide{Some Examples: kantree}
+\slide{Some Examples: kantree -- buy from better companies}
 
 \begin{quote}
 At Kantree, we believe in collaboration, transparency and trust.
@@ -997,14 +1386,26 @@ More autonomy implies a deeper involvement. It requires transparency to ensure a
 Source:  \link{https://kantree.io/about}
 
 
+\slide{Conclusion: Take Control, Take Responsibility}
 
+%\hlkimage{}{}
 
-\slide{Conclusion}
+\begin{quote}
+Self-hosting is not for everyone — but for those who choose it,
+it offers genuine independence, real learning, and ownership of your data
+\end{quote}
 
-\begin{list1}
-\item Running your own services can be a lot of work, but some trick make it easier
-\item Some things you shouldn't run yourself
-\end{list1}
+\begin{list2}
+\item {\bf Start small} — a single VPS with NGINX and UFW is already self-hosting
+\item {\bf Use open standards} — OCI images, open protocols, open formats keep your options open
+\item {\bf Version control everything} — if it is not in Git, it does not exist
+\item {\bf Security is not optional} — firewalls, TLS, patching, and backups from day one
+\item {\bf You are on call} — know this going in, and plan for it
+\item {\bf Communities help} — cooperatives, associations, and friendly sysadmins
+share the burden and the knowledge
+\item {\bf Digital sovereignty is a journey} — every service you move away from Big Tech
+is a step toward independence
+\end{list2}
 
 
 \myquestionspage
