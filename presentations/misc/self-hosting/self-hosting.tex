@@ -1386,14 +1386,102 @@ More autonomy implies a deeper involvement. It requires transparency to ensure a
 Source:  \link{https://kantree.io/about}
 
 
-\slide{Conclusion: Take Control, Take Responsibility}
+\slide{Things We Didn't Cover: File Sync and Collaboration}
 
 %\hlkimage{}{}
 
 \begin{quote}
+Replacing cloud storage and office collaboration tools is very achievable
+with self-hosted open source software
+\end{quote}
+
+\begin{list2}
+\item {\bf Nextcloud} — the most complete self-hosted collaboration platform:
+files, calendar, contacts, video calls, office documents, and more \link{https://nextcloud.com}
+\item {\bf Syncthing} — decentralised file synchronisation between your own devices,
+no server required \link{https://syncthing.net}
+\item {\bf Seafile} — fast, reliable file sync with a focus on performance and simplicity \link{https://seafile.com}
+\item {\bf OnlyOffice} and {\bf Collabora Online} integrate with Nextcloud to provide
+browser-based editing of Word, Excel, and PowerPoint compatible documents
+\item {\bf Cryptpad} — end-to-end encrypted collaborative documents, spreadsheets,
+and kanban boards \link{https://cryptpad.fr}
+\item All of these run well in Docker containers — a \verb+docker-compose.yml+ and
+an NGINX reverse proxy is usually all you need to get started
+\end{list2}
+
+
+\slide{Things We Didn't Cover: Communication and Messaging}
+
+%\hlkimage{}{}
+
+\begin{quote}
+Microsoft Teams, Slack, and Zoom dominate workplaces —
+but self-hosted alternatives exist for all of them,
+with better privacy and no per-seat licensing costs.
+\end{quote}
+
+\begin{list2}
+\item {\bf Mattermost} — open source Slack alternative, self-hosted,
+with threads, channels, and integrations \link{https://mattermost.com}
+\item {\bf Matrix / Element} — federated, encrypted messaging and team chat;
+run your own homeserver with Synapse or Conduit \link{https://matrix.org}
+\item {\bf Jitsi Meet} — self-hosted video conferencing, no account required,
+works in the browser \link{https://jitsi.org}
+\item {\bf Rocket.Chat} — team messaging with video, file sharing,
+and a large plugin ecosystem \link{https://rocket.chat}
+\item {\bf XMPP} — the original open federated messaging protocol, still widely used,
+clients include Conversations (Android) and Gajim (desktop)
+\item Federation matters: Matrix and XMPP allow communication across different servers —
+you are not locked into a single provider or instance
+\end{list2}
+
+
+\slide{Things We Didn't Cover: Monitoring, Passwords, and More}
+
+
+\begin{list2}
+\item {\bf Monitoring} — {\bf LibreNMS} for network monitoring \link{https://librenms.org},
+{\bf Grafana} + {\bf Prometheus} for metrics and dashboards \link{https://grafana.com}
+\item {\bf Password management} — {\bf Bitwarden} offers an official self-hosted server
+\link{https://bitwarden.com}; {\bf Vaultwarden} is a lightweight community reimplementation
+in Rust, compatible with all Bitwarden clients and easier to run on modest hardware
+\link{https://github.com/dani-garcia/vaultwarden}
+\item {\bf DNS filtering} — {\bf Pi-hole} block ads and
+tracking domains network-wide via DNS \link{https://pi-hole.net}
+\item {\bf Git hosting} — {\bf Gitea} or {\bf Forgejo} provide a lightweight self-hosted
+GitHub alternative for code and documentation \link{https://forgejo.org}
+\item {\bf Home automation} — {\bf Home Assistant} runs locally and keeps your smart
+home data off vendor clouds \link{https://www.home-assistant.io}
+\item The self-hosting community maintains {\bf Awesome-Selfhosted} —
+a curated list of hundreds of options \link{https://awesome-selfhosted.net}
+\end{list2}
+
+
+\slide{Things We Didn't Cover: Client Operating Systems}
+
+\begin{list2}
+\item {\bf Debian} — rock-solid, well-supported Linux desktop and laptop OS;
+what we use at Zencurity for workstations \link{https://www.debian.org}
+\item {\bf Ubuntu} — Debian-based, more beginner-friendly, large community and
+good hardware support; a natural first step from Windows or macOS \link{https://ubuntu.com}
+\item {\bf Fedora} — Red Hat sponsored, cutting-edge packages, good for developers \link{https://fedoraproject.org}
+\item {\bf Linux Mint} — often recommended as the most approachable desktop Linux
+for people switching from Windows \link{https://linuxmint.com}
+\item {\bf Qubes OS} — security through compartmentalisation; runs each application
+or context in a separate VM (qube); not for everyone, but very powerful for
+high-security workstations — used at Zencurity \link{https://www.qubes-os.org}
+\item All of the above are free, open source, and run well on modest hardware —
+including older laptops that Windows 11 refuses to support
+\end{list2}
+
+\slide{Conclusion: Take Control, Take Responsibility}
+
+%\hlkimage{}{}
+
+
 Self-hosting is not for everyone — but for those who choose it,
 it offers genuine independence, real learning, and ownership of your data
-\end{quote}
+
 
 \begin{list2}
 \item {\bf Start small} — a single VPS with NGINX and UFW is already self-hosting
