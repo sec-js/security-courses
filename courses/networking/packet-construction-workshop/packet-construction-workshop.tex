@@ -1,0 +1,790 @@
+\documentclass[Screen16to9,17pt]{foils}
+\usepackage{zencurity-slides}
+
+\externaldocument{packet-construction-workshop-exercises}
+\selectlanguage{english}
+
+\begin{document}
+
+
+\mytitlepage
+{Network Packet Construction Workshop for Beginners}
+{BornHack July 2026}
+
+
+\hlkprofiluk
+
+\slide{Goals for today}
+
+\hlkimage{6cm}{bornhack-camp-2024.jpg}
+
+Getting Started with Network Packets -- from Ping to 100G
+
+\begin{list2}
+\item Introduce a little basic TCP/IP terminology
+\item Let you get some hands on with IP protocols
+\item Run ordinary programs like ping, wireshark, tcpdump
+\item Try more advanced tools like Python with Scapy and Lua
+\end{list2}
+
+Photo is NWWC camp at BornHack 2024 \link{https://bornhack.dk}
+
+
+\slide{Time schedule}
+
+\hlkimage{4cm}{kame-noanime-small.png}
+\begin{list2}
+\item 17:00 - 17:45 Introduction and basics
+\item 17:45 - 19:00 Play with tools, try sending packets, sniffing packets etc.
+\end{list2}
+
+\slide{Exercises are completely optional}
+
+We will use a combination of your systems, my networking hardware and my systems.\\
+{\color{red} \bf There might be live sniffing done on traffic!}
+
+We try to mimic what you would do in your own networks during the exercises.
+
+\begin{list2}
+\item Try ping and traceroute
+\item See your own IP settings
+\item Borrow a USB Ethernet and connect to a switch or router
+\item Borrow a router home!
+\end{list2}
+
+Linux is a toolbox I will use and participants are recommended to research virtual machines
+
+Note: even though I talk a lot about Unix and Linux, you can definitely run a lot of tools on Windows and Mac OS X. The basic tools are available like the built-in ones and Nmap. Command line tools are sometimes used in the slides, as they only show text where a GUI screenshot can be cluttered with a lot of information, feel free to find GUI tools and web sites with same functionality
+
+
+\slide{Course Materials}
+
+\begin{list2}
+\item This material is in multiple parts:
+
+\item Slide show - presentation - this file
+\item Exercises - PDF which is used for this and other workshops
+\item Additional resources from the internet are linked throughout
+\item Wikipedia has a LOT of nice pages about IP protocols, for example:
+\end{list2}
+
+\begin{quote}\small
+Transport Layer Security (TLS) is a cryptographic protocol designed to provide communications security over a computer network. The protocol is widely used in applications such as email, instant messaging, and voice over IP, but its use in securing HTTPS remains the most publicly visible.
+\end{quote}
+Source: \url{https://en.wikipedia.org/wiki/Transport_Layer_Security}
+
+\slide{Book: Practical Packet Analysis (PPA)}
+
+
+\hlkimage{6cm}{PracticalPacketAnalysis3E_cover.png}
+
+\emph{Practical Packet Analysis,
+Using Wireshark to Solve Real-World Network Problems}
+by Chris Sanders, 3rd Edition
+April 2017, 368 pp.
+ISBN-13:
+978-1-59327-802-1
+\link{https://nostarch.com/packetanalysis3}
+
+I recommend this book for people new to networking, it has been in HumbleBundle book bundles multiple times
+
+
+\slide{Prerequisites}
+
+If you are interested in TCP/IP you are welcome
+
+If you want to be an expert in IP and network security I recommend doing exercises
+
+\begin{list1}
+\item It is recommended to use virtual machines for the exercises
+\item Network security and most internet related security work has the following requirements:
+\begin{list2}
+\item Network experience
+\item TCP/IP principles - often in more detail than a common user
+\item Programming is an advantage, for automating things
+\item Some Linux and Unix knowledge is in my opinion a {\bf necessary skill} for infosec work\\
+-- too many new tools to ignore, and lots found at sites like Github and Open Source written for Linux
+\end{list2}
+\end{list1}
+
+
+
+\slide{Course Network: The BornHack Network}
+.
+\hlkrightpic{65mm}{-1cm}{sample-network.png}
+
+\begin{list1}
+\item I have a course network with me which has the following information:
+\begin{list2}
+\item Routers and Switches Juniper and TP-Link
+\item wireless access-points Aruba
+\item IPv4 addresses: 151.216.96.0/20
+\item IPv6 addresses route6: 2001:678:9ec::/48
+\item Autonomous system number: AS208647 BornHack\\
+\url{https://en.wikipedia.org/wiki/Autonomous_system_(Internet)}
+
+\end{list2}
+\end{list1}
+
+\centerline{\Large You are encouraged to use the network}
+
+
+
+\slide{Internet Today}
+
+\hlkimage{10cm}{images/server-client.pdf}
+
+\begin{list1}
+\item Clients and servers, roots in the academic world
+\item Protocols are old, some more than 30 years
+\item Very few protocols where encrypted, today a lot has switched to HTTPS and TLS
+\end{list1}
+
+
+\slide{Network Protocol Knowledge Needed for Network Security}
+
+To work with network security the following protocols are the bare minimum to know about.
+
+\begin{list2}
+\item ARP Address Resolution Protocol for IPv4
+\item NDP Neighbor Discovery Protocol for IPv6
+\item IPv4 \& IPv6 -- the basic packet fields source, destination,
+\item ICMPv4 \& ICMPv6 Internet Control Message Protocol
+\item UDP User Datagram Protocol
+\item TCP Transmission Control Protocol
+\item DHCP Dynamic Host Configuration Protocol
+\item DNS Domain Name System
+\end{list2}
+
+These protocols are part of the Internet Protocol suite, or TCP/IP for short. The canonical document describing this is from 1981 RFC-0791 \citetitle{RFC0791}. The protocols were deployed on the internet around 1983.
+
+
+\slide{Common Address Space}
+
+\vskip 2 cm
+\hlkimage{13cm}{IP-address.pdf}
+
+\begin{list2}
+\item Internet is defined by the address space
+\item IPv4 based on 32-bit addresses, example dotted decimal format 10.0.0.1
+\item IPv6 very similar to IPv4 without NAT, 128-bit addresses in hex ::1, 2a06:d380:0:101::80
+\end{list2}
+
+
+\slide{How to use the Internet Protocols (IP)}
+
+Names are used by humans
+\begin{center}\hlkbig
+www.kramse.org
+
+hlk@kramse.org
+\end{center}
+
+Computers use the addresses
+
+\begin{alltt}
+www     IN      A       185.129.63.130
+        IN      AAAA    2a06:d380:0:102::80
+mail    IN      A       217.157.63.115
+        IN      AAAA    2a06:d380:0:102::25
+\end{alltt}
+
+
+
+
+\slide{IP-adresser as bits}
+
+\begin{alltt}
+IP-adresse: 127.0.0.1
+Heltal:	2130706433
+Binary:	1111111000000000000000000000001
+\end{alltt}
+
+\begin{list1}
+\item IP-address converted to bits
+\item Computers use bits
+\end{list1}
+
+\slide{Internet ABC}
+
+\begin{list1}
+\item Previously we used classes: A, B, C, D og E
+\item This proved to be a bit inflexible:
+\begin{list2}
+\item A-klasse has 16 million hosts
+\item B-klasse about 65.000 hosts
+\item C-klasse only 250 hosts
+\end{list2}
+\item Most people asked for B-klasser - starting to run out!
+\item D-klasse used for multicast
+\item E-klasse reserved
+\item See \link{http://en.wikipedia.org/wiki/Classful\_network}
+\end{list1}
+
+\vskip 5mm
+\centerline{\bf Stop saying C, say /24}
+
+
+\slide{RFC-1918 Private Networks}
+
+\begin{list1}
+\item Der findes et antal adresserum som alle må benytte frit:
+\begin{list2}
+\item 10.0.0.0    -  10.255.255.255  (10/8 prefix)
+\item 172.16.0.0  -  172.31.255.255  (172.16/12 prefix)
+\item 192.168.0.0 -  192.168.255.255 (192.168/16 prefix)
+\end{list2}
+\item Address Allocation for Private Internets RFC-1918 adresserne!
+\item NB: man må ikke sende pakker ud på internet med disse som afsender, giver ikke mening
+\end{list1}
+
+\begin{alltt}
+The blocks 192.0.2.0/24 (TEST-NET-1), 198.51.100.0/24 (TEST-NET-2),
+and 203.0.113.0/24 (TEST-NET-3) are provided for use in
+documentation.
+
+169.254.0.0/16 has been ear-marked as the IP range to use for end node
+auto-configuration when a DHCP server may not be found
+\end{alltt}
+
+
+\slide{Documentation Prefix, IPv6 updates etc.}presentations/network/creative-packets/creative-packets
+
+Even documentation has its own prefix, RFC5737:
+\begin{alltt}
+The blocks 192.0.2.0/24 (TEST-NET-1), 198.51.100.0/24 (TEST-NET-2),
+and 203.0.113.0/24 (TEST-NET-3) are provided for use in
+documentation.
+\end{alltt}
+
+IPv6 listed in RFC3849 \verb+2001:DB8::/32+
+
+See RFC3330 \emph{Special-Use IPv4 Addresses} which is updated by
+RFC6890 \emph{Special-Purpose IP Address Registries} which in turn is updated by RFC8190\\
+Use the web version of RFCs to surf back and forth \link{https://www.rfc-editor.org/rfc/rfc8190}
+
+
+\slide{CIDR Classless Inter-Domain Routing}
+
+\hlkimage{15cm}{CIDR-aggregation.pdf}
+
+\begin{list2}
+\item Subnet mask originally inferred by the class
+\item Started to allocate multiple C-class networks - save remaining B-class\\
+Resulted in routing table explosion - btw Stop using A, B, C
+\item A subnet mask today is a row of 1-bit
+\item Supernet, supernetting
+\item 10.0.0.0/24 means the network 10.0.0.0 with 24 subnet bits (mask 255.255.255.0)
+\item 2a06:d380:0:101::80/64 means the network with 64-bit prefix length
+\end{list2}
+
+
+
+\slide{Protocols: OSI and Internet models}
+
+\hlkimage{11cm,angle=90}{images/compare-osi-ip.pdf}
+
+
+\slide{Ethernet, cables}
+
+\hlkimage{17cm}{ethernetLights.jpg}
+
+\centerline{Show link, and activity -- blinkenlights}
+
+
+\slide{A modern router}
+
+\hlkimage{7cm}{sft1200_1.png}
+
+\begin{list2}
+\item Opal (GL-SFT1200) is a pocket-sized travel router supporting 1200Mbps wireless,
+Max. 300 Mbps (2.4GHz) + 867 Mbps (5GHz) Fast Wi-Fi Speeds, Powerful CPU with 3 x Gigabit Ports,
+Excellent Security with VPN -- OpenVPN \& WireGuard, IPv6
+\end{list2}
+Source: \url{https://www.gl-inet.com/products/gl-sft1200/}
+
+
+\slide{Packets across the wire or wireless}
+
+\hlkimage{20cm}{ethernet-frame-1.pdf}
+\begin{list1}
+\item Looking at data as a stream the packets are a pattern laid on top
+\item Network technology defines the start and end of a frame, example Ethernet
+\item From a lower level we receive a packet, example 1500-bytes from Ethernet driver
+\item Operating system masks a lot of complexity
+\end{list1}
+
+
+\slide{The basic tools today}
+
+{\Large Knowledge and insight}
+\begin{list2}
+\item Networks have end-points and conversations on multiple layers
+\item Wireshark is advanced, try right-clicking different places
+\item Name resolution includes low level MAC addresses, and IP - names
+\end{list2}
+
+\begin{list2}
+\item Tcpdump format, built-in to many network devices
+\item Remote packet dumps, like \verb+tcpdump –i eth0 –w packets.pcap+
+\item Story: tcpdump was originally written in 1988 by Van Jacobson, Sally Floyd, Vern Paxson and Steven McCanne who were, at the time, working in the Lawrence Berkeley Laboratory Network Research Group\\
+ \link{https://en.wikipedia.org/wiki/Tcpdump}
+\end{list2}
+
+\vskip 5mm
+
+\centerline{\Large Great network security comes from knowing networks!}
+
+
+
+\slide{Network Knowledge Needed}
+
+To work with network security the following protocols are the bare minimum to know about.
+
+\begin{list2}
+\item ARP Address Resolution Protocol for IPv4
+\item NDP Neighbor Discovery Protocol for IPv6
+\item IPv4 \& IPv6 -- the basic packet fields source, destination,
+\item ICMPv4 \& ICMPv6 Internet Control Message Protocol
+\item UDP User Datagram Protocol
+\item TCP Transmission Control Protocol
+\item DHCP Dynamic Host Configuration Protocol
+\item DNS Domain Name System
+\end{list2}
+
+\centerline{A little Linux knowledge is also {\bf highly recommended}}
+
+
+\slide{IPv4 header - RFC-791 september 1981}
+
+\begin{alltt}\footnotesize
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Version|  IHL  |Type of Service|          Total Length         |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |         Identification        |Flags|      Fragment Offset    |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |  Time to Live |    Protocol   |         Header Checksum       |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                       Source Address                          |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                    Destination Address                        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                    Options                    |    Padding    |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+                    Example Internet Datagram Header
+\end{alltt}
+Source: \url{https://datatracker.ietf.org/doc/html/rfc791} and updated later
+
+\slide{IPv6 header - RFC-1883 December 1995}
+\vskip -1cm
+\begin{alltt}\footnotesize
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |Version| Traffic Class |           Flow Label                  |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |         Payload Length        |  Next Header  |   Hop Limit   |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +                         Source Address                        +
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +                      Destination Address                      +
+   |                                                               |
+   +                                                               +
+   |                                                               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+\end{alltt}
+%Source: \url{https://datatracker.ietf.org/doc/html/rfc1883} and obsoleted by\\
+%\url{https://datatracker.ietf.org/doc/html/rfc8200}
+
+\slide{UDP User Datagram Protocol}
+\hlkimage{16cm}{udp-1.pdf}
+Connectionless \url{https://en.wikipedia.org/wiki/User_Datagram_Protocol}
+
+
+\slide{TCP Transmission Control Protocol}
+\hlkimage{14cm}{tcp-1.pdf}
+
+Connection-oriented \url{https://en.wikipedia.org/wiki/Transmission_Control_Protocol}
+
+
+\slide{TCP three way handshake}
+
+\hlkimage{6cm}{images/tcp-three-way.pdf}
+
+\begin{list2}
+\item Session setup is used in some protocols
+\item Other protocols like HTTP/2 can perform request in the first packet
+\end{list2}
+
+
+\slide{Well-Known Port Numbers}
+presentations/network/creative-packets/creative-packets
+\hlkimage{3cm}{iana1.jpg}
+
+\begin{list1}
+\item IANA maintains a list of magical numbers in TCP/IP
+\item Lists of protocl numbers, port numers etc.
+\item A few notable examples:
+\begin{list2}
+\item Port 25/tcp Simple Mail Transfer Protocol (SMTP)
+\item Port 53/udp and 53/tcp Domain Name System (DNS)
+\item Port 80/tcp Hyper Text Transfer Protocol (HTTP)
+\item Port 443/tcp HTTP over TLS/SSL (HTTPS)
+\end{list2}
+\item Source: \link{http://www.iana.org}
+\end{list1}
+
+
+\slide{ICMP and Ping}
+
+\begin{list1}
+\item Internet Control Message Protocol (ICMP)
+\item Error conditions are signalled using this
+\item The ping program sends ICMP ECHO request and
+ expect ICMP ECHO reply
+\item
+\begin{alltt}
+\small {\bfseries
+$ ping 192.168.1.1}
+PING 192.168.1.1 (192.168.1.1): 56 data bytes
+64 bytes from 192.168.1.1: icmp_seq=0 ttl=150 time=8.849 ms
+64 bytes from 192.168.1.1: icmp_seq=1 ttl=150 time=0.588 ms
+64 bytes from 192.168.1.1: icmp_seq=2 ttl=150 time=0.553 ms
+\end{alltt}
+\end{list1}
+
+\slide{traceroute}
+
+\begin{list1}
+  \item traceroute works using the Time to Live (TTL) or Hop-Count fields
+\item Each router will subtract one from this, and if zero -- return ICMP message
+\item Unix uses UDP and Windows usually uses ICMP Echo
+\item
+\begin{alltt}
+\small{\bfseries
+$ traceroute 185.129.60.129}
+traceroute to 185.129.60.129 (185.129.60.129),
+30 hops max, 40 byte packets
+ 1  safri (10.0.0.11)  3.577 ms  0.565 ms  0.323 ms
+ 2  router (185.129.60.129)  1.481 ms  1.374 ms  1.261 ms
+\end{alltt}
+\end{list1}
+
+\slide{IPv6 addressing RFC-4291}
+
+\begin{list1}
+\item Addresses are always 128-bit identifiers for interfaces and sets of
+   interfaces
+\item Unicast:   An identifier for a {\bf single interface}.\\
+A packet sent to a
+               unicast address is delivered to the interface identified
+               by that address.
+\item Anycast:   An identifier for a {\bf set of interfaces} (typically
+               belonging to different nodes).\\  A packet sent to an
+               anycast address is {\bf delivered to one} of the interfaces
+               identified by that address (the "nearest" one, according
+               to the routing protocols' measure of distance).
+
+\item Multicast: An identifier for a {\bf set of interfaces} (typically
+               belonging to different nodes). \\ A packet sent to a
+               multicast address is {\bf delivered to all interfaces
+               identified by that address}.
+\end{list1}
+
+\slide{IPv6 addressing RFC-4291, cont.}
+
+\hlkimage{22cm}{ipv6-address-1.pdf}
+
+\begin{list1}
+\item 8 times 4 hex-digits seperated by colon x:x:x:x:x:x:x:x
+\item Written as ipv6-address/prefix-length CIDR notation
+\item Leading zeros can be removed
+\item One or more groups of 16 bits of zeros can be replaced by ::
+\end{list1}
+
+
+\slide{Examples:}
+\begin{list2}
+\item ABCD:EF01:2345:6789:ABCD:EF01:2345:6789
+
+\item Adddress 2001:DB8:0:0:8:800:200C:417A
+\item Address of loopback ::1
+\item IPv6 prefix 2a02:09d0:95::1/64, subnet 2a02:09d0:0095:0000::/64
+\item Address 2a02:09d0:95::1 or 2a02:09d0:0095:0000:0000:0000:0000:0001
+\end{list2}
+
+
+
+\slide{IPv6 address - special prefixes }
+
+\begin{list2}
+\item link-local unicast addresses\\
+fe80::/10 generated from the interface MAC address EUI-64
+\item FEC0::/10 site-local - deprecated in RFC-3879
+
+\item 2001:0DB8::/32 NON-ROUTABLE range to be used for documentation purpose RFC-3849.
+
+\item FC00::/7 Unique Local IPv6 Unicast Addresses RFC-4193\\
+\link{http://www.simpledns.com/private-ipv6.aspx}\\
+If you do not like to put public addresses on internal network - use this instead
+\end{list2}
+
+
+
+\slide{Hello neighbors}
+
+\begin{alltt}\small
+$ ping6 -w -I en1 ff02::1
+PING6(72=40+8+24 bytes) fe80::223:6cff:fe9a:f52c%en1 --> ff02::1
+30 bytes from fe80::223:6cff:fe9a:f52c%en1: bigfoot
+36 bytes from fe80::216:cbff:feac:1d9f%en1: mike.kramse.dk.
+38 bytes from fe80::200:aaff:feab:9f06%en1: xrx0000aaab9f06
+34 bytes from fe80::20d:93ff:fe4d:55fe%en1: harry.local
+36 bytes from fe80::200:24ff:fec8:b24c%en1: kris.kramse.dk.
+31 bytes from fe80::21b:63ff:fef5:38df%en1: airport5
+32 bytes from fe80::216:cbff:fec4:403a%en1: main-base
+44 bytes from fe80::217:f2ff:fee4:2156%en1: Base Station Koekken
+35 bytes from fe80::21e:c2ff:feac:cd17%en1: arnold.local
+\end{alltt}
+
+
+
+\slide{Wireshark - graphical network sniffer}
+
+\hlkimage{13cm}{images/wireshark-http.png}
+
+\centerline{Capture - Options, select a network interface}
+\centerline{\link{http://www.wireshark.org}}
+
+
+\slide{Your Privacy }
+
+\hlkimage{18cm}{images/internet-browsing.pdf}
+
+\begin{list2}
+\item Your data travels far
+\item Often crossing borders, virtually and literally
+\end{list2}
+
+
+\slide{Basic port scanning}
+
+\begin{list1}
+\item What is a port scan
+\item Testing all values possible for port number from 0/1 to 65535
+\item Goal is to identify open ports, listening and vulnerable services
+\item Most often TCP og UDP scan
+\item TCP scanning is more realiable than UDP scanning
+\item TCP handshake must respond with SYN-ACK packets
+\item UDP applications respond differently -- if they even respond\\
+so probes with real requests may get response, no firewall they respond withb ICMP on closed ports
+\item Use the GUI program Zenmap while learning Nmap
+\end{list1}
+
+\slide{TCP three-way handshake}
+
+\hlkimage{4cm}{images/tcp-three-way.pdf}
+
+\begin{list2}
+\item {\bfseries TCP SYN half-open} scans
+\item in the old days systems would only log when a full TCP connection was setup\\
+  -- so doing only half open it was a \emph{stealth}-scans
+\item Today system and IDS intrusion detection can easily monitor for this
+\item Sending a lot of SYN packets can create a Denial of Service -- {\bfseries SYN-flooding}
+\end{list2}
+
+\slide{Scope: select systems for testing}
+
+\hlkimage{10cm}{overview-routing-customer-2015.png}
+
+\begin{list2}
+\item Routers in front of critical systems and networks - availability
+\item Firewalls -- are traffic flows restricted
+\item Mail servers -- open for relaying
+\item Web servers -- remote code execution in web systems, data download
+\end{list2}
+
+\slide{Ping and port sweep}
+
+\begin{list1}
+\item Scans across the network are named sweeps
+\item Ping sweeps using ICMP Ping probes
+\item Port sweep trying to find a specific service, like port 80 web
+\item Quite easy to see in network traffic:
+\begin{list2}
+\item Selecting two IP-adresser not in use
+\item Should not see any traffic, but if it does, its being scanned
+\item If traffic is received on both addresses, its a sweep -- if they are a bit apart it is even better, like 10.0.0.100 and 10.0.0.200
+  \end{list2}
+
+\vskip 2cm
+Pro tip: a Great network intrusion detection engine (IDS), is Suricata \link{suricata-ids.org}
+\end{list1}
+
+\slide{what is Nmap today}
+\begin{quote}
+Nmap ("Network Mapper"presentations/network/creative-packets/creative-packets) is a free and open source (license) utility for network discovery and security auditing.
+\end{quote}
+
+\begin{list1}
+\item Initial release September 1997; almost 30 years ago
+\item Today a package of programs for Windows, Mac, BSD, Linux, ... source
+\item Flexible, powerful, and free! Includes other tools!
+\end{list1}
+
+Bonus info: you can help Nmap by submitting fingerprints
+
+
+\slide{Nmap port sweep for web servers}
+
+\begin{alltt}\small
+root@cornerstone:~#{\bfseries  nmap -p80,443 172.29.0.0/24}
+
+Starting Nmap 6.47 ( http://nmap.org ) at 2015-02-05 07:31 CET
+Nmap scan report for 172.29.0.1
+Host is up (0.00016s latency).
+PORT    STATE    SERVICE
+{\color{darkgreen}80/tcp  open     http}
+443/tcp filtered https
+MAC Address: 00:50:56:C0:00:08 (VMware)
+
+Nmap scan report for 172.29.0.138
+Host is up (0.00012s latency).
+PORT    STATE  SERVICE
+{\color{darkgreen}80/tcp  open   http}
+443/tcp closed https
+MAC Address: 00:0C:29:46:22:FB (VMware)
+
+\end{alltt}
+
+\slide{Nmap port sweep for SNMP port 161/UDP}
+
+\begin{alltt}\small
+root@cornerstone:~#{\bfseries nmap -sU -p 161 172.29.0.0/24}
+Starting Nmap 6.47 ( http://nmap.org ) at 2015-02-05 07:30 CET
+Nmap scan report for 172.29.0.1
+Host is up (0.00015s latency).
+PORT    STATE         SERVICE
+{\color{darkgreen}161/udp open|filtered snmp}
+MAC Address: 00:50:56:C0:00:08 (VMware)
+
+Nmap scan report for 172.29.0.138
+Host is up (0.00011s latency).
+PORT    STATE  SERVICE
+{\bf{161/udp closed snmp}}
+MAC Address: 00:0C:29:46:22:FB (VMware)
+...
+Nmap done: 256 IP addresses (5 hosts up) scanned in 2.18 seconds
+\end{alltt}
+
+\vskip 5mm
+\centerline{More reliable to use Nmap script with probes like --script=snmp-info}
+
+\slide{Nmap Advanced OS detection}
+\begin{alltt}\footnotesize
+root@cornerstone:~#{\bfseries nmap -A -p80,443 172.29.0.0/24}
+Starting Nmap 6.47 ( http://nmap.org ) at 2015-02-05 07:37 CET
+Nmap scan report for 172.29.0.1
+Host is up (0.00027s latency).
+PORT    STATE    SERVICE VERSION
+80/tcp  open     http    Apache httpd 2.2.26 ((Unix) DAV/2 mod_ssl/2.2.26 OpenSSL/0.9.8zc)
+|_http-title: Site doesn't have a title (text/html).
+443/tcp filtered https
+MAC Address: 00:50:56:C0:00:08 (VMware)
+Device type: media device|general purpose|phone
+Running: Apple iOS 6.X|4.X|5.X, Apple Mac OS X 10.7.X|10.9.X|10.8.X
+OS details: Apple iOS 6.1.3, Apple Mac OS X 10.7.0 (Lion) - 10.9.2 (Mavericks)
+or iOS 4.1 - 7.1 (Darwin 10.0.0 - 14.0.0), Apple Mac OS X 10.8 - 10.8.3 (Mountain Lion)
+or iOS 5.1.1 - 6.1.5 (Darwin 12.0.0 - 13.0.0)
+OS and Service detection performed.
+Please report any incorrect results at http://nmap.org/submit/
+\end{alltt}
+
+\begin{list2}
+\item Low-level way to identify operating systems, also try/use
+  \verb+nmap -A+
+\item Send probes and observe responses, lookup in table of known OS and responses
+\item Techniques known since at least: \emph{ICMP Usage In Scanning} Version 3.0,
+  Ofir Arkin, 2001 %\link{https://web.archive.org/web/20050210093427/http://www.sys-security.com/html/projects/icmp.html} % Original side er død
+\end{list2}
+
+
+\slide{Conclusion -- Networks are exciting!}
+
+\hlkimage{10cm}{IMG_20250309_bailey.jpg}
+
+
+\begin{list2}
+\item Many protocols work together to provide \emph{cat and dog pictures}
+\item Lots of acronyms, but a relatively small set of protocols will get you started
+\item Working with a small portable router and your laptop might teach you the basics
+\end{list2}
+
+%Pictured a small white and black dog playing with a toy porcupine
+\myquestionspage
+
+
+
+\slide{Advanced Subjects}
+
+Below are some pointers to very advanced tools.
+
+They are listed here as a next step from doing manual tcpdump and Wireshark packet capture.
+
+The tools also allow you to continuously monitor a network easily.
+
+\begin{list2}
+\item Zeek
+\item Suricata
+\end{list2}
+
+That said, they are also great learning tools -- start from a packet capture files, decode it, get an overview and read about it.
+
+\slide{Architecture for packet capture}
+
+\hlkimage{4cm}{network-horiz-onion.png}
+Source: picture from \link{https://docs.securityonion.net/en/2.3/introduction.html}
+
+\begin{list2}
+\item Note the terminology North-South -- from the internet into the systems
+\item East-West -- horizontal traffic inside the data center
+\item See also from Security Onion \url{https://docs.securityonion.net/en/2.3/architecture.html#architecture}
+\end{list2}
+
+
+
+\slide{The Zeek Network Security Monitor}
+
+\hlkimage{13cm}{zeek-overview.png}
+
+The Zeek Network Security Monitor is not a single tool, more of a
+powerful network analysis framework. Note: the project was renamed from Bro to Zeek in Oct 2018
+
+{\small Source \url{https://www.zeek.org/}}
+
+
+\slide{Suricata IDS/IPS/NSM}
+
+\hlkimage{6cm}{suricata.png}
+
+\begin{quote}
+Suricata is a high performance Network IDS, IPS and Network Security Monitoring engine. Open Source and owned by a community run non-profit foundation, the Open Information Security Foundation (OISF). Suricata is developed by the OISF and its supporting vendors.
+\end{quote}
+
+ \link{http://suricata-ids.org/}
+ \link{http://openinfosecfoundation.org}
+
+\centerline{I often use Suricata and Zeek together}
+
+
+\end{document}
